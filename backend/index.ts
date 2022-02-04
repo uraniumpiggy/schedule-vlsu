@@ -59,6 +59,7 @@ class TextCell {
 }
 
 //   text: 'c 31.01.2022 по 08.06.2022',
+//   isYellow: false,
 //   borders: {
 //     topLeft: { x: 40.753, y: 17.719 },
 //     rightBottom: { x: 57.586, y: 19.491 }
@@ -133,12 +134,12 @@ pdfParser.on("pdfParser_dataError", (errData: any) => {console.error(errData.par
 pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
     fs.writeFile("./res.json", decodeURIComponent(JSON.stringify(pdfData)), (response: any) => {
         const borders: Array<object> = getTextBordersCoordinates(pdfData, 0);
-        let cells: Array<TextCell> = getTextInCells(pdfData, 0, borders);
-        cells = defineCellsColor(pdfData, 0, cells);
+        let cells: Array<TextCell>   = getTextInCells(pdfData, 0, borders);
+        cells                        = defineCellsColor(pdfData, 0, cells);
         for (let i: number = 0; i < cells.length; i++) {
-            if (cells[i].isYellow) {
+            // if (cells[i].isYellow) {
                 console.log(cells[i])
-            }
+            // }
         }
     })
 });

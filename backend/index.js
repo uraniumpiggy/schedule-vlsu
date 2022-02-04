@@ -110,9 +110,9 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
         let cells = getTextInCells(pdfData, 0, borders);
         cells = defineCellsColor(pdfData, 0, cells);
         for (let i = 0; i < cells.length; i++) {
-            if (cells[i].isYellow) {
-                console.log(cells[i]);
-            }
+            // if (cells[i].isYellow) {
+            console.log(cells[i]);
+            // }
         }
     });
 });
