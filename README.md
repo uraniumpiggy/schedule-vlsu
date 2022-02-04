@@ -9,4 +9,4 @@
  > ### Запуск проекта
  > 1. В рабочей папке выполните команду git clone https://github.com/uraniumpiggy/schedule-vlsu.git
  > 2. Запустите команду npm i которая установит все необходимые пакеты
- > 3. Команда npm start компилирует ts файл в js b pfgecrftn его
+ > 3. Команда npm start компилирует файл index.ts в index.js и запускает его
