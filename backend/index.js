@@ -44,6 +44,7 @@ function getTextBordersCoordinates(pdfData, numberOfPage) {
 class TextCell {
     constructor(text, borders) {
         this.text = text;
+        this.isYellow = false;
         this.borders = borders;
     }
 }
@@ -75,15 +76,43 @@ function getTextInCells(pdfData, numberOfPage, borders) {
     }
     return result;
 }
+function defineCellsColor(pdfData, numberOfPage, cells) {
+    const colorsData = pdfData["Pages"][numberOfPage]["Fills"];
+    let rectTopLeftX;
+    let rectTopLeftY;
+    let rectRightBottomX;
+    let rectRightBottomY;
+    let rectColor;
+    for (let i = 0; i < colorsData.length; i++) {
+        rectTopLeftX = colorsData[i]["x"];
+        rectTopLeftY = colorsData[i]["y"];
+        rectRightBottomX = colorsData[i]["w"] + rectTopLeftX;
+        rectRightBottomY = colorsData[i]["h"] + rectTopLeftY;
+        rectColor = colorsData[i]["oc"];
+        for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
+            if (rectColor === "#ffff00") {
+                if (Math.abs(cells[cellIndex].borders.topLeft.x - rectTopLeftX) < 0.1 &&
+                    Math.abs(cells[cellIndex].borders.topLeft.y - rectTopLeftY) < 0.1 &&
+                    Math.abs(cells[cellIndex].borders.rightBottom.x - rectRightBottomX) < 0.1 &&
+                    Math.abs(cells[cellIndex].borders.rightBottom.y - rectRightBottomY) < 0.1) {
+                    cells[cellIndex].isYellow = true;
+                }
+            }
+        }
+    }
+    return cells;
+}
 const pdfParser = new PDFParser();
 pdfParser.on("pdfParser_dataError", (errData) => { console.error(errData.parserError); });
 pdfParser.on("pdfParser_dataReady", (pdfData) => {
     fs.writeFile("./res.json", decodeURIComponent(JSON.stringify(pdfData)), (response) => {
         const borders = getTextBordersCoordinates(pdfData, 0);
-        const cells = getTextInCells(pdfData, 0, borders);
-        console.log(cells.length);
-        for (let i = 0; i < cells.length && i < 50; i++) {
-            console.log(cells[i]);
+        let cells = getTextInCells(pdfData, 0, borders);
+        cells = defineCellsColor(pdfData, 0, cells);
+        for (let i = 0; i < cells.length; i++) {
+            if (cells[i].isYellow) {
+                console.log(cells[i]);
+            }
         }
     });
 });
