@@ -1,6 +1,6 @@
 "use strict";
 const fs = require('fs');
-const PDFParser = require('pdf2json');
+const PDFParser = require('pdf2json'); 
 //   {
 //     topLeft: { x: 74.419, y: 14.175 },
 //     rightBottom: { x: 91.251, y: 17.719 }
