@@ -9,8 +9,8 @@ module.exports = (() => {
             parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
             parser.on("pdfParser_dataReady", (pdfData: any) => {
                 try {
-                    const borders: Array<object> = PDFParser.getTextBordersCoordinates(pdfData, 0)
-                    const cells: Array<TextCell> = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
+                    const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
+                    const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
                     callback(cells)
                 } catch(e: any) {
                     error(e.message)
@@ -18,7 +18,7 @@ module.exports = (() => {
             })
 
             if(!fs.existsSync(path)) {
-                error('Unknown institute name');
+                error('Unknown institute name')
                 return
             }
 
@@ -33,20 +33,13 @@ module.exports = (() => {
             let result: object[] = []
             const linesData: any = pdfData["Pages"][numberOfPage]["VLines"]
 
-            let xCoor:     number
-            let yCoor:     number
-            let l:         number
-            let xCoorNext: number
-            let yCoorNext: number
-            let lNext:     number
-
             for (let i: number = 0; i < linesData.length; i+=2) {
-                xCoor     = linesData[i]["x"]
-                yCoor     = linesData[i]["y"]
-                l         = linesData[i]["l"]
-                xCoorNext = linesData[i+1]["x"]
-                yCoorNext = linesData[i+1]["y"]
-                lNext     = linesData[i+1]["l"]
+                const xCoor: number = linesData[i]["x"]
+                const yCoor: number = linesData[i]["y"]
+                const l: number = linesData[i]["l"]
+                const xCoorNext: number = linesData[i+1]["x"]
+                const yCoorNext: number= linesData[i+1]["y"]
+                const lNext: number= linesData[i+1]["l"]
 
                 if (l === lNext && yCoor === yCoorNext) {
                     const item: object = {
@@ -77,19 +70,15 @@ module.exports = (() => {
         //   }
         private static getTextInCells(pdfData: any, numberOfPage: number, borders: any[]): TextCell[] {
             const textData:  any = pdfData["Pages"][numberOfPage]["Texts"]
-            let currentText: string
-            let textX:       number
-            let textY:       number
-
             let result: TextCell[] = []
 
             for (let bordersIndex: number = 0; bordersIndex < borders.length; bordersIndex++) {
                 let textCellItem = new TextCell("", borders[bordersIndex])
 
                 for (let i: number = 0; i < textData.length; i++) {
-                    currentText = decodeURIComponent(textData[i]["R"][0]["T"])
-                    textX       = textData[i]["x"]
-                    textY       = textData[i]["y"]
+                    const currentText: string = decodeURIComponent(textData[i]["R"][0]["T"])
+                    const textX: number = textData[i]["x"]
+                    const textY: number = textData[i]["y"]
 
                     if (borders[bordersIndex].topLeft.x < textX &&
                         borders[bordersIndex].rightBottom.x > textX &&
@@ -107,18 +96,13 @@ module.exports = (() => {
 
         private static defineCellsColor(pdfData: any, numberOfPage: number, cells: Array<TextCell>): Array<TextCell> {
             const colorsData:     any = pdfData["Pages"][numberOfPage]["Fills"]
-            let rectTopLeftX:     number
-            let rectTopLeftY:     number
-            let rectRightBottomX: number
-            let rectRightBottomY: number
-            let rectColor:        string
 
             for (let i: number = 0; i < colorsData.length; i++) {
-                rectTopLeftX     = colorsData[i]["x"]
-                rectTopLeftY     = colorsData[i]["y"]
-                rectRightBottomX = colorsData[i]["w"] + rectTopLeftX
-                rectRightBottomY = colorsData[i]["h"] + rectTopLeftY
-                rectColor        = colorsData[i]["oc"]
+                const rectTopLeftX : number = colorsData[i]["x"]
+                const rectTopLeftY : number = colorsData[i]["y"]
+                const rectRightBottomX : number = colorsData[i]["w"] + rectTopLeftX
+                const rectRightBottomY : number = colorsData[i]["h"] + rectTopLeftY
+                const rectColor : string = colorsData[i]["oc"]
 
                 for (let cellIndex: number = 0; cellIndex < cells.length; cellIndex++) {
                     if (rectColor === "#ffff00") {

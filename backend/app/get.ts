@@ -1,5 +1,4 @@
 module.exports = () => {
-    const fs = require('fs')
     const path = require('path')
     const pdfParser = require('../lib/PDFParser')
     const pdfRootDir = path.join(__dirname, '../institutesTimetables')
