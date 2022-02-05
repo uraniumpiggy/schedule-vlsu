@@ -1,19 +1,17 @@
-module.exports = () => {
-    const path = require('path')
-    const pdfParser = require('../lib/PDFParser')
-    const pdfRootDir = path.join(__dirname, '../institutesTimetables')
+import path from 'path'
+import consts from '../consts'
+import {PDFParser, TextCell} from '../lib/PDFParser'
 
-    return {
-        method: 'get',
-        func: (req: any, res: any) => {
-            if(!req?.query?.target)
-                res.status(500).json({error: 'Target parameter not specified'})
+export default [{
+    method: 'get',
+    func: (req: any, res: any) => {
+        if(!req?.query?.target)
+            res.status(500).json({error: 'Target parameter not specified'})
 
-            pdfParser.PDFParser.parse(
-                path.join(pdfRootDir, req?.query?.target + '.pdf'),
-                (cells: any) => res.json(JSON.stringify(cells)),
-                (err: string) => res.status(500).json({error: err})
-            )
-        }
+        PDFParser.parse(
+            path.join(consts.pdfRootDir, req?.query?.target + '.pdf'),
+            (cells: TextCell[]) => res.json(JSON.stringify(cells)),
+            (err: string) => res.status(500).json({error: err})
+        )
     }
-}
+}]
