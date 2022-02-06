@@ -49,6 +49,7 @@ class TextCell {
     }
 }
 //   text: 'c 31.01.2022 по 08.06.2022',
+//   isYellow: false,
 //   borders: {
 //     topLeft: { x: 40.753, y: 17.719 },
 //     rightBottom: { x: 57.586, y: 19.491 }
@@ -102,6 +103,12 @@ function defineCellsColor(pdfData, numberOfPage, cells) {
     }
     return cells;
 }
+function parseLessonString(lessonString) {
+    const timeLimitRegExp = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
+    const cabinetRegExp = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
+    const lessonTypeRegExp = /\s(лк|лб|пр)\s/;
+    return {};
+}
 const pdfParser = new PDFParser();
 pdfParser.on("pdfParser_dataError", (errData) => { console.error(errData.parserError); });
 pdfParser.on("pdfParser_dataReady", (pdfData) => {
@@ -110,9 +117,16 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
         let cells = getTextInCells(pdfData, 0, borders);
         cells = defineCellsColor(pdfData, 0, cells);
         for (let i = 0; i < cells.length; i++) {
-            // if (cells[i].isYellow) {
-            console.log(cells[i]);
+            // console.log(cells[i])
+            // if (cabinetRegExp.test(cells[i].text)) {
+            //     cells[i].text.replace(cabinetRegExp, "")
+            //     console.log(cells[i].text)
             // }
+        }
+        const teacherRegEXp = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
+        const arr = [" Чернова О.Б.", " Чернова О. Б.", " 111б-13", " 8:30 - 11:30", " 8:30-11:30"];
+        for (const val of arr) {
+            console.log(teacherRegEXp.test(val));
         }
     });
 });

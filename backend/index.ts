@@ -127,6 +127,19 @@ function defineCellsColor(pdfData: any, numberOfPage: number, cells: Array<TextC
     return cells;
 }
 
+function parseLessonString(lessonString: string): object {
+    const timeLimitRegExp: RegExp = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
+    const cabinetRegExp: RegExp = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
+    const lessonTypeRegExp: RegExp = /\s(лк|лб|пр)\s/;
+    const teacherRegEXp: RegExp = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
+
+    
+
+    return {
+
+    }
+}
+
 const pdfParser = new PDFParser();
 
 pdfParser.on("pdfParser_dataError", (errData: any) => {console.error(errData.parserError)} );
@@ -137,9 +150,7 @@ pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
         let cells: Array<TextCell>   = getTextInCells(pdfData, 0, borders);
         cells                        = defineCellsColor(pdfData, 0, cells);
         for (let i: number = 0; i < cells.length; i++) {
-            // if (cells[i].isYellow) {
-                console.log(cells[i])
-            // }
+            console.log(cells[i])
         }
     })
 });
