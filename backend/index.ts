@@ -90,6 +90,7 @@ function getTextInCells(pdfData: any, numberOfPage: number, borders: Array<any>)
                 textCellItem.text += currentText + " ";
             }
         }
+        textCellItem.text.slice(0, -1);
         result.push(textCellItem);
     }
 
@@ -127,17 +128,92 @@ function defineCellsColor(pdfData: any, numberOfPage: number, cells: Array<TextC
     return cells;
 }
 
-function parseLessonString(lessonString: string): object {
-    const timeLimitRegExp: RegExp = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
-    const cabinetRegExp: RegExp = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
-    const lessonTypeRegExp: RegExp = /\s(лк|лб|пр)\s/;
-    const teacherRegEXp: RegExp = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
+// необходимо тщательное тестирование
+function parseLessonString(lessonString: string): object[] {
+    const timeLimitRegExp: RegExp   = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
+    const cabinetRegExp: RegExp     = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
+    const lessonTypeRegExp: RegExp  = /\s(лк|лб|пр)\s/;
+    const teacherRegExp: RegExp     = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
+    const endOfLessonRegExp: RegExp = /[а-яА-Я]+\.($|\s[А-Я])/;
+    let res: object[] = [];
 
-    
+    let lessonStringCopy: string = lessonString;
 
-    return {
+    const lessonStringArray: RegExpMatchArray = lessonStringCopy.match(endOfLessonRegExp) ?? [];
+    if (lessonStringArray === []) {
+        console.log("Cant define end of string", lessonStringCopy);
 
     }
+    const lessonCounter: number = lessonStringCopy.match(endOfLessonRegExp)?.length ?? 1;
+
+    for (let i: number = 0; i < lessonCounter; i++) {
+        let currentLessonText: string;
+        // console.log(lessonStringArray)
+        if (lessonStringArray === []) {
+            currentLessonText = lessonStringCopy;
+        } else { 
+            if (i < lessonCounter - 1) {
+                currentLessonText = lessonStringCopy.substring(0, lessonStringCopy.indexOf(lessonStringArray[i]) + lessonStringArray[i].length - 2);
+                lessonStringCopy = lessonStringCopy.replace(currentLessonText + " ", "");
+            } else {
+                currentLessonText = lessonStringCopy;
+            }
+        }
+        
+        // время проведения пары, этот тескт убирать из текста пары не стоит
+        const timeOfLesson: RegExpMatchArray = currentLessonText.match(timeLimitRegExp) ?? [];
+        let timeStart: number = 0;
+        let timeEnd: number   = -1;
+        if (timeOfLesson.length !== 0) {
+            const timeStratEndArray: RegExpMatchArray = timeOfLesson[0].match(/\d+/) ?? [];
+            if (timeStratEndArray.length === 0) {
+                throw "Unexpected error in regex parsing" + currentLessonText;
+            }
+            timeStart = parseInt(timeStratEndArray[0]);
+            timeEnd = parseInt(timeStratEndArray[1]);
+        }
+
+        const cabinetArray: RegExpMatchArray = currentLessonText.match(cabinetRegExp) ?? [];
+        let cabinet: string = "";
+        if (cabinetArray.length === 0) {
+            console.log("Bad cabinet parsing", currentLessonText);
+        } else {
+            cabinet = cabinetArray[0].trim();
+        }
+        currentLessonText = currentLessonText.replace(cabinetRegExp, "");
+
+        const lessonTypeArray: RegExpMatchArray = currentLessonText.match(lessonTypeRegExp) ?? []; 
+        let lessonType: string = "";
+        if (lessonTypeArray.length === 0) {
+            console.log("Bad lesson parsing", currentLessonText);
+        } else {
+            lessonType = lessonTypeArray[0].trim();
+        }
+        currentLessonText = currentLessonText.replace(lessonType, "");
+
+        const teacherArray: RegExpMatchArray = currentLessonText.match(teacherRegExp) ?? [];
+        let techer: string = "";
+        if (teacherArray.length === 0) {
+            console.log("Bad teacher parsing", currentLessonText);
+        } else {
+            techer = teacherArray[0].substring(1);
+        }
+        currentLessonText = currentLessonText.replace(techer, "");
+        currentLessonText = currentLessonText.replace("  ", " ");
+
+        const currnetRes: object = {
+            timeStart: timeStart,
+            timeEnd: timeEnd,
+            cabinet: cabinet,
+            lessonType: lessonType,
+            techer: techer,
+            lesson: currentLessonText,
+        } 
+
+        res.push(currnetRes);
+    }
+
+    return res;
 }
 
 const pdfParser = new PDFParser();
@@ -150,7 +226,9 @@ pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
         let cells: Array<TextCell>   = getTextInCells(pdfData, 0, borders);
         cells                        = defineCellsColor(pdfData, 0, cells);
         for (let i: number = 0; i < cells.length; i++) {
-            console.log(cells[i])
+            if (cells[i].text !== "") {
+                console.log(parseLessonString(cells[i].text))
+            }
         }
     })
 });
