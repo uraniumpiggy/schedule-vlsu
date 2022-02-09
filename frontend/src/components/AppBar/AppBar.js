@@ -1,8 +1,11 @@
 import React from 'react';
-import AppBarContainer from "./AppBarContainer/AppBarContainer";
+import './AppBar.css';
+import MenuButton from './AppBarMenu/MenuButton'
 
 export default function AppBar() {
-  return (
-      <AppBarContainer />
-  );
+    return (
+        <div className="appbar-container">
+            <MenuButton />
+        </div>
+    );
 }
