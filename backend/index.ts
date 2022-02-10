@@ -242,7 +242,10 @@ class LessonTimings {
 
     getDayTime(yStart: number, yEnd: number): Array<string>|undefined {
         for (let key of this.coorTimeMap.keys()) {
-            if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1) {
+            if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
+                Math.abs(key[0] - yStart) < 1 && yEnd < key[1] ||
+                yStart > key[0] && Math.abs(key[1] - yEnd) < 1) 
+            {
                 return this.coorTimeMap.get(key)
             }
         }
@@ -250,7 +253,7 @@ class LessonTimings {
     }
 }
 
-function getGroupSchedule(group: TextCell, cells: Array<TextCell>): Array<object> {
+function getGroupSchedule(group: TextCell, cells: Array<TextCell>, coorTimeMap: LessonTimings): Array<object> {
     let result: Array<object> = []
 
     for (const cell of cells) {
@@ -258,10 +261,16 @@ function getGroupSchedule(group: TextCell, cells: Array<TextCell>): Array<object
             Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
             Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) 
         {
-            const lesson: object = {
-                lesson: parseLessonString(cell.text)
+            const dayTime: Array<string> | undefined = coorTimeMap.getDayTime(cell.borders.topLeft.y, cell.borders.rightBottom.y)
+            if (dayTime !== undefined) {
+                const lesson: object = {
+                    lesson: parseLessonString(cell.text),
+                    day: dayTime[0],
+                    time: dayTime[1],
+                    week: cell.isYellow ? 1 : 0
+                }
+                result.push(lesson)
             }
-            result.push(lesson)
         }
     }
 
@@ -277,19 +286,17 @@ pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
         const borders: Array<object> = getTextBordersCoordinates(pdfData, 0);
         let cells: Array<TextCell>   = getTextInCells(pdfData, 0, borders);
         cells                        = defineCellsColor(pdfData, 0, cells);
-        // for (let i: number = 0; i < cells.length; i++) {
-        //     // if (cells[i].text === "АИС-121") {
-        //     //     const schedule: Array<object> = getGroupSchedule(cells[i], cells)
-        //     //     for (let val of schedule) {
-        //     //         console.log(val)
-        //     //     }
-        //     // }
-        //     console.log(cells[i])
-        // }
         const coorTimeMap: LessonTimings = new LessonTimings(cells)
-        for (let entry of coorTimeMap.coorTimeMap) {
-            console.log(entry)
+        for (let i: number = 0; i < cells.length; i++) {
+            if (cells[i].text === "АИС-121") {
+                const schedule: Array<object> = getGroupSchedule(cells[i], cells, coorTimeMap)
+                for (let val of schedule) {
+                    console.log(val)
+                }
+            }
+            // console.log(cells[i])
         }
+        console.log(coorTimeMap)
     })
 });
 

@@ -206,17 +206,33 @@ class LessonTimings {
         }
         this.coorTimeMap = coorTimeMap;
     }
+    getDayTime(yStart, yEnd) {
+        for (let key of this.coorTimeMap.keys()) {
+            if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
+                Math.abs(key[0] - yStart) < 1 && yEnd < key[1] ||
+                yStart > key[0] && Math.abs(key[1] - yEnd) < 1) {
+                return this.coorTimeMap.get(key);
+            }
+        }
+        return [];
+    }
 }
-function getGroupSchedule(group, cells) {
+function getGroupSchedule(group, cells, coorTimeMap) {
     let result = [];
     for (const cell of cells) {
         if (Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1 ||
             Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
             Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) {
-            const lesson = {
-                lesson: parseLessonString(cell.text)
-            };
-            result.push(lesson);
+            const dayTime = coorTimeMap.getDayTime(cell.borders.topLeft.y, cell.borders.rightBottom.y);
+            if (dayTime !== undefined) {
+                const lesson = {
+                    lesson: parseLessonString(cell.text),
+                    day: dayTime[0],
+                    time: dayTime[1],
+                    week: cell.isYellow ? 1 : 0
+                };
+                result.push(lesson);
+            }
         }
     }
     return result;
@@ -228,19 +244,17 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
         const borders = getTextBordersCoordinates(pdfData, 0);
         let cells = getTextInCells(pdfData, 0, borders);
         cells = defineCellsColor(pdfData, 0, cells);
-        // for (let i: number = 0; i < cells.length; i++) {
-        //     // if (cells[i].text === "АИС-121") {
-        //     //     const schedule: Array<object> = getGroupSchedule(cells[i], cells)
-        //     //     for (let val of schedule) {
-        //     //         console.log(val)
-        //     //     }
-        //     // }
-        //     console.log(cells[i])
-        // }
         const coorTimeMap = new LessonTimings(cells);
-        for (let entry of coorTimeMap.coorTimeMap) {
-            console.log(entry);
+        for (let i = 0; i < cells.length; i++) {
+            if (cells[i].text === "АИС-121") {
+                const schedule = getGroupSchedule(cells[i], cells, coorTimeMap);
+                for (let val of schedule) {
+                    console.log(val);
+                }
+            }
+            // console.log(cells[i])
         }
+        console.log(coorTimeMap);
     });
 });
 pdfParser.loadPDF('./1.pdf');
