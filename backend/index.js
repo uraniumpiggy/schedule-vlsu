@@ -1,260 +1,81 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require('fs');
-const PDFParser = require('pdf2json');
-//   {
-//     topLeft: { x: 74.419, y: 14.175 },
-//     rightBottom: { x: 91.251, y: 17.719 }
-//   },
-function getTextBordersCoordinates(pdfData, numberOfPage) {
-    let result = [];
-    const linesData = pdfData["Pages"][numberOfPage]["VLines"];
-    let xCoor;
-    let yCoor;
-    let l;
-    let xCoorNext;
-    let yCoorNext;
-    let lNext;
-    for (let i = 0; i < linesData.length; i += 2) {
-        xCoor = linesData[i]["x"];
-        yCoor = linesData[i]["y"];
-        l = linesData[i]["l"];
-        xCoorNext = linesData[i + 1]["x"];
-        yCoorNext = linesData[i + 1]["y"];
-        lNext = linesData[i + 1]["l"];
-        if (l === lNext && yCoor === yCoorNext) {
-            const item = {
-                topLeft: {
-                    x: xCoorNext,
-                    y: yCoorNext,
-                },
-                rightBottom: {
-                    x: xCoor,
-                    y: yCoor + l,
-                }
-            };
-            result.push(item);
-        }
-        else {
-            console.log("Error occured");
-            result.push({});
-        }
-    }
-    return result;
-}
-class TextCell {
-    constructor(text, borders) {
-        this.text = text;
-        this.isYellow = false;
-        this.borders = borders;
-    }
-}
-//   text: 'c 31.01.2022 по 08.06.2022',
-//   isYellow: false,
-//   borders: {
-//     topLeft: { x: 40.753, y: 17.719 },
-//     rightBottom: { x: 57.586, y: 19.491 }
-//   }
-function getTextInCells(pdfData, numberOfPage, borders) {
-    const textData = pdfData["Pages"][numberOfPage]["Texts"];
-    let currentText;
-    let textX;
-    let textY;
-    let result = [];
-    for (let bordersIndex = 0; bordersIndex < borders.length; bordersIndex++) {
-        let textCellItem = new TextCell("", borders[bordersIndex]);
-        for (let i = 0; i < textData.length; i++) {
-            currentText = decodeURIComponent(textData[i]["R"][0]["T"]);
-            textX = textData[i]["x"];
-            textY = textData[i]["y"];
-            if (borders[bordersIndex].topLeft.x < textX &&
-                borders[bordersIndex].rightBottom.x > textX &&
-                borders[bordersIndex].topLeft.y < textY &&
-                borders[bordersIndex].rightBottom.y > textY) {
-                textCellItem.text += currentText + " ";
-            }
-        }
-        textCellItem.text = textCellItem.text.trim();
-        if (textCellItem.text !== "") {
-            result.push(textCellItem);
-        }
-    }
-    return result;
-}
-function defineCellsColor(pdfData, numberOfPage, cells) {
-    const colorsData = pdfData["Pages"][numberOfPage]["Fills"];
-    let rectTopLeftX;
-    let rectTopLeftY;
-    let rectRightBottomX;
-    let rectRightBottomY;
-    let rectColor;
-    for (let i = 0; i < colorsData.length; i++) {
-        rectTopLeftX = colorsData[i]["x"];
-        rectTopLeftY = colorsData[i]["y"];
-        rectRightBottomX = colorsData[i]["w"] + rectTopLeftX;
-        rectRightBottomY = colorsData[i]["h"] + rectTopLeftY;
-        rectColor = colorsData[i]["oc"];
-        for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
-            if (rectColor === "#ffff00") {
-                if (Math.abs(cells[cellIndex].borders.topLeft.x - rectTopLeftX) < 0.1 &&
-                    Math.abs(cells[cellIndex].borders.topLeft.y - rectTopLeftY) < 0.1 &&
-                    Math.abs(cells[cellIndex].borders.rightBottom.x - rectRightBottomX) < 0.1 &&
-                    Math.abs(cells[cellIndex].borders.rightBottom.y - rectRightBottomY) < 0.1) {
-                    cells[cellIndex].isYellow = true;
-                }
-            }
-        }
-    }
-    return cells;
-}
-// необходимо тщательное тестирование
-function parseLessonString(lessonString) {
-    var _a, _b, _c, _d, _e, _f, _g;
-    const timeLimitRegExp = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
-    const cabinetRegExp = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
-    const lessonTypeRegExp = /\s(лк|лб|пр)\s/;
-    const teacherRegExp = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
-    const endOfLessonRegExp = /[а-яА-Я]+\.($|(\s[А-Я]))/g;
-    let res = [];
-    let lessonStringCopy = lessonString;
-    const lessonStringArray = (_a = lessonStringCopy.match(endOfLessonRegExp)) !== null && _a !== void 0 ? _a : [];
-    if (lessonStringArray === []) {
-        console.log("Cant define end of string", lessonStringCopy);
-    }
-    const lessonCounter = (_c = (_b = lessonStringCopy.match(endOfLessonRegExp)) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 1;
-    for (let i = 0; i < lessonCounter; i++) {
-        let currentLessonText;
-        // console.log(lessonStringArray)
-        if (lessonStringArray === []) {
-            currentLessonText = lessonStringCopy;
-        }
-        else {
-            if (i < lessonCounter - 1) {
-                currentLessonText = lessonStringCopy.substring(0, lessonStringCopy.indexOf(lessonStringArray[i]) + lessonStringArray[i].length - 2);
-                lessonStringCopy = lessonStringCopy.replace(currentLessonText + " ", "");
-            }
-            else {
-                currentLessonText = lessonStringCopy;
-            }
-        }
-        // время проведения пары, этот тескт убирать из текста пары не стоит
-        const timeOfLesson = (_d = currentLessonText.match(timeLimitRegExp)) !== null && _d !== void 0 ? _d : [];
-        let timeStart = 0;
-        let timeEnd = -1;
-        if (timeOfLesson.length !== 0) {
-            const timeStratEndArray = [...timeOfLesson[0].matchAll(/\d+/g)];
-            if (timeStratEndArray.length === 0) {
-                throw "Unexpected error in regex parsing" + currentLessonText;
-            }
-            timeStart = parseInt(timeStratEndArray[0][0]);
-            timeEnd = parseInt(timeStratEndArray[1][0]);
-        }
-        const cabinetArray = (_e = currentLessonText.match(cabinetRegExp)) !== null && _e !== void 0 ? _e : [];
-        let cabinet = "";
-        if (cabinetArray.length === 0) {
-            console.log("Bad cabinet parsing", currentLessonText);
-        }
-        else {
-            cabinet = cabinetArray[0].trim();
-        }
-        currentLessonText = currentLessonText.replace(cabinetRegExp, "");
-        const lessonTypeArray = (_f = currentLessonText.match(lessonTypeRegExp)) !== null && _f !== void 0 ? _f : [];
-        let lessonType = "";
-        if (lessonTypeArray.length === 0) {
-            console.log("Bad lesson parsing", currentLessonText);
-        }
-        else {
-            lessonType = lessonTypeArray[0].trim();
-        }
-        currentLessonText = currentLessonText.replace(lessonType, "");
-        const teacherArray = (_g = currentLessonText.match(teacherRegExp)) !== null && _g !== void 0 ? _g : [];
-        let techer = "";
-        if (teacherArray.length === 0) {
-            console.log("Bad teacher parsing", currentLessonText);
-        }
-        else {
-            techer = teacherArray[0].trim();
-        }
-        currentLessonText = currentLessonText.replace(techer, "");
-        currentLessonText = currentLessonText.replace("  ", " ");
-        const currnetRes = {
-            timeStart: timeStart,
-            timeEnd: timeEnd,
-            cabinet: cabinet,
-            lessonType: lessonType,
-            techer: techer,
-            lesson: currentLessonText.trim(),
-        };
-        res.push(currnetRes);
-    }
-    return res;
-}
-// coors -> day/time
-class LessonTimings {
-    constructor(cells) {
-        let coorTimeMap = new Map();
-        let currentDay = "";
-        const timeOfLessonRegExp = /^\d+\:\d+/;
-        for (const cell of cells) {
-            if (cell.text === "Понедельник" || cell.text === "Вторник" || cell.text === "Среда" || cell.text === "Четверг" || cell.text === "Пятница" || cell.text === "Суббота") {
-                currentDay = cell.text;
-            }
-            if (timeOfLessonRegExp.test(cell.text)) {
-                console.log(cell.text);
-                coorTimeMap.set([cell.borders.topLeft.y, cell.borders.rightBottom.y], [currentDay, cell.text]);
-            }
-        }
-        this.coorTimeMap = coorTimeMap;
-    }
-    getDayTime(yStart, yEnd) {
-        for (let key of this.coorTimeMap.keys()) {
-            if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
-                Math.abs(key[0] - yStart) < 1 && yEnd < key[1] ||
-                yStart > key[0] && Math.abs(key[1] - yEnd) < 1) {
-                return this.coorTimeMap.get(key);
-            }
-        }
-        return [];
-    }
-}
-function getGroupSchedule(group, cells, coorTimeMap) {
-    let result = [];
-    for (const cell of cells) {
-        if (Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1 ||
-            Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
-            Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) {
-            const dayTime = coorTimeMap.getDayTime(cell.borders.topLeft.y, cell.borders.rightBottom.y);
-            if (dayTime !== undefined) {
-                const lesson = {
-                    lesson: parseLessonString(cell.text),
-                    day: dayTime[0],
-                    time: dayTime[1],
-                    week: cell.isYellow ? 1 : 0
-                };
-                result.push(lesson);
-            }
-        }
-    }
-    return result;
-}
-const pdfParser = new PDFParser();
-pdfParser.on("pdfParser_dataError", (errData) => { console.error(errData.parserError); });
-pdfParser.on("pdfParser_dataReady", (pdfData) => {
-    fs.writeFile("./res.json", decodeURIComponent(JSON.stringify(pdfData)), (response) => {
-        const borders = getTextBordersCoordinates(pdfData, 0);
-        let cells = getTextInCells(pdfData, 0, borders);
-        cells = defineCellsColor(pdfData, 0, cells);
-        const coorTimeMap = new LessonTimings(cells);
-        for (let i = 0; i < cells.length; i++) {
-            if (cells[i].text === "АИС-121") {
-                const schedule = getGroupSchedule(cells[i], cells, coorTimeMap);
-                for (let val of schedule) {
-                    console.log(val);
-                }
-            }
-            // console.log(cells[i])
-        }
-        console.log(coorTimeMap);
-    });
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
 });
-pdfParser.loadPDF('./1.pdf');
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
+const node_cron_1 = __importDefault(require("node-cron"));
+const axios_1 = __importDefault(require("axios"));
+const jsdom_1 = require("jsdom");
+const express_1 = __importDefault(require("express"));
+const consts_1 = __importDefault(require("./consts"));
+const app = (0, express_1.default)();
+const port = 3000;
+const appRootDir = consts_1.default.appRootDir;
+const pdfRootDir = consts_1.default.pdfRootDir;
+const vlsuURL = consts_1.default.vlsuURL;
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+function parseSite(rootDir) {
+    axios_1.default.get(vlsuURL).then((response) => {
+        const dom = new jsdom_1.JSDOM(response.data);
+        fs_1.default.rmdirSync(rootDir, { recursive: true });
+        fs_1.default.mkdirSync(rootDir);
+        dom.window.document.querySelectorAll('a').forEach((link) => {
+            if (link.href.includes(".pdf")) {
+                const writer = fs_1.default.createWriteStream(rootDir + '/' + link.text);
+                (0, axios_1.default)({
+                    url: link.href,
+                    responseType: 'stream'
+                }).then((response) => {
+                    response.data.pipe(writer);
+                    writer.on('error', err => {
+                        console.error(err);
+                        writer.close();
+                    });
+                });
+            }
+        });
+    }).catch((err) => console.error(err));
+}
+parseSite(pdfRootDir);
+fs_1.default.readdirSync(appRootDir).map((fileName) => __awaiter(void 0, void 0, void 0, function* () {
+    const components = fileName.split('.');
+    if (components[1] == 'js')
+        return;
+    const routesInfo = (yield Promise.resolve().then(() => __importStar(require('./app/' + components[0])))).default;
+    routesInfo.forEach((info) => app[info.method]('/' + components[0], info.func));
+}));
+app.listen(port, () => console.log('Server start in port: ' + port));
+node_cron_1.default.schedule("0 0 0-23 * * *", () => {
+    console.log("Updating PDF start");
+    parseSite(pdfRootDir);
+    console.log("Updating PDF end");
+});
