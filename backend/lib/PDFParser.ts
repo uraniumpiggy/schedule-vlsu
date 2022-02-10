@@ -13,17 +13,10 @@ export class PDFParser {
                 const verticalCoors: VerticalSections = new VerticalSections(cells)
                 for (const cell of cells) {
                     if (cell.text === "МКН-121") {
-                        // console.log(JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)))
-                        fs.writeFile("output.json", JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)), 'utf8', function (err) {
-                            if (err) {
-                                console.log("An error occured while writing JSON Object to File.");
-                                return console.log(err);
-                            }
-                         
-                            console.log("JSON file has been saved.");
-                        });
+                        console.log(JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)))
                     }
                 }
+                console.log(this.getNamesOfGroups(cells, verticalCoors))
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -269,6 +262,17 @@ export class PDFParser {
             lessons: lessons
         }
     }
+
+    private static getNamesOfGroups(cells: Array<TextCell>, verticalCoors: VerticalSections): Array<TextCell> {
+        const coorsOfGroups: Array<number> = verticalCoors.getGroopsCoors()
+        let result: Array<TextCell> = []
+        for (const cell of cells) {
+            if (Math.abs(coorsOfGroups[0] - cell.borders.topLeft.y) < 1 && Math.abs(coorsOfGroups[1] - cell.borders.rightBottom.y) < 1 && cell.text !== "Группа") {
+                result.push(cell)
+            }
+        }
+        return result
+    }
 }
 
 export class TextCell {
@@ -323,7 +327,7 @@ class VerticalSections {
         return [];
     }
 
-    getGroopsCoor(): Array<number> {
+    getGroopsCoors(): Array<number> {
         return this.groupCoors
     }
 
