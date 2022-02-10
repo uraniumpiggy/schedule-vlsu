@@ -10,6 +10,20 @@ export class PDFParser {
             try {
                 const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
                 const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
+                const verticalCoors: VerticalSections = new VerticalSections(cells)
+                for (const cell of cells) {
+                    if (cell.text === "МКН-121") {
+                        // console.log(JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)))
+                        fs.writeFile("output.json", JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)), 'utf8', function (err) {
+                            if (err) {
+                                console.log("An error occured while writing JSON Object to File.");
+                                return console.log(err);
+                            }
+                         
+                            console.log("JSON file has been saved.");
+                        });
+                    }
+                }
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -213,22 +227,47 @@ export class PDFParser {
         return res;
     }
 
-    private static getGroupSchedule(group: TextCell, cells: Array<TextCell>): Array<object> {
-        let result: Array<object> = []
+    private static getGroupSchedule(group: TextCell, cells: Array<TextCell>, coorTimeMap: VerticalSections): object {
+        let lessons: Array<object> = []
+        let term: string = ""
+        const termCoors: Array<number> = coorTimeMap.getTermCoors() 
     
         for (const cell of cells) {
-            if (Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1 ||
-                Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
-                Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) 
+            const leftBordersMatchUp: boolean = Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1
+            const rightBordersMatchUp: boolean = Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1
+            if (leftBordersMatchUp && rightBordersMatchUp ||
+                leftBordersMatchUp && group.borders.rightBottom.x < cell.borders.rightBottom.x ||
+                group.borders.topLeft.x > cell.borders.topLeft.x && rightBordersMatchUp) 
             {
-                const lesson: object = {
-                    lesson: PDFParser.parseLessonString(cell.text)
+                const dayTime: Array<string> | undefined = coorTimeMap.getDayTime(cell.borders.topLeft.y, cell.borders.rightBottom.y)
+                let subgroup: string = ""
+                if (leftBordersMatchUp && cell.borders.rightBottom.x < group.borders.rightBottom.x - 2) {
+                    subgroup = "1 п/г"
                 }
-                result.push(lesson)
+                if (rightBordersMatchUp && group.borders.topLeft.x + 2 < cell.borders.topLeft.x) {
+                    subgroup = "2 п/г"
+                }
+                if (Math.abs(termCoors[0] - cell.borders.topLeft.y) < 1 && Math.abs(termCoors[1] - cell.borders.rightBottom.y) < 1) {
+                    term = cell.text
+                }
+                if (dayTime !== undefined) {
+                    const lesson: object = {
+                        lesson: PDFParser.parseLessonString(cell.text),
+                        day: dayTime[0],
+                        time: dayTime[1],
+                        week: cell.isYellow ? 0 : 1,
+                        subgroup: subgroup
+                    }
+                    lessons.push(lesson)
+                }
             }
         }
     
-        return result
+        return {
+            group: group.text,
+            term: term,
+            lessons: lessons
+        }
     }
 }
 
@@ -245,8 +284,10 @@ export class TextCell {
 }
 
 // coors -> day/time
-class LessonTimings {
+class VerticalSections {
     readonly coorTimeMap: Map<Array<number>, Array<string>>
+    private groupCoors: Array<number> = [0,0]
+    private termCoors: Array<number> = [0,0]
 
     constructor(cells: Array<TextCell>) {
         let coorTimeMap: Map<Array<number>, Array<string>> = new Map<Array<number>, Array<string>>()
@@ -259,6 +300,12 @@ class LessonTimings {
             if (timeOfLessonRegExp.test(cell.text)) {
                 console.log(cell.text)
                 coorTimeMap.set([cell.borders.topLeft.y, cell.borders.rightBottom.y], [currentDay, cell.text]);
+            }
+            if (cell.text === "Группа") {
+                this.groupCoors = [cell.borders.topLeft.y, cell.borders.rightBottom.y]
+            }
+            if (cell.text === "Срок") {
+                this.termCoors = [cell.borders.topLeft.y, cell.borders.rightBottom.y]
             }
         } 
         this.coorTimeMap = coorTimeMap
@@ -275,4 +322,15 @@ class LessonTimings {
         }
         return [];
     }
+
+    getGroopsCoor(): Array<number> {
+        return this.groupCoors
+    }
+
+    getTermCoors(): Array<number> {
+        return this.termCoors
+    }
 }
+
+
+PDFParser.parse("../1.pdf", () => {}, () => {})
