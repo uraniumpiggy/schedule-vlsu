@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs');
 const PDFParser = require('pdf2json');
 //   {
@@ -74,7 +75,9 @@ function getTextInCells(pdfData, numberOfPage, borders) {
             }
         }
         textCellItem.text = textCellItem.text.trim();
-        result.push(textCellItem);
+        if (textCellItem.text !== "") {
+            result.push(textCellItem);
+        }
     }
     return result;
 }
@@ -186,6 +189,38 @@ function parseLessonString(lessonString) {
     }
     return res;
 }
+// coors -> day/time
+class LessonTimings {
+    constructor(cells) {
+        let coorTimeMap = new Map();
+        let currentDay = "";
+        const timeOfLessonRegExp = /^\d+\:\d+/;
+        for (const cell of cells) {
+            if (cell.text === "Понедельник" || cell.text === "Вторник" || cell.text === "Среда" || cell.text === "Четверг" || cell.text === "Пятница" || cell.text === "Суббота") {
+                currentDay = cell.text;
+            }
+            if (timeOfLessonRegExp.test(cell.text)) {
+                console.log(cell.text);
+                coorTimeMap.set([cell.borders.topLeft.y, cell.borders.rightBottom.y], [currentDay, cell.text]);
+            }
+        }
+        this.coorTimeMap = coorTimeMap;
+    }
+}
+function getGroupSchedule(group, cells) {
+    let result = [];
+    for (const cell of cells) {
+        if (Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1 ||
+            Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
+            Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) {
+            const lesson = {
+                lesson: parseLessonString(cell.text)
+            };
+            result.push(lesson);
+        }
+    }
+    return result;
+}
 const pdfParser = new PDFParser();
 pdfParser.on("pdfParser_dataError", (errData) => { console.error(errData.parserError); });
 pdfParser.on("pdfParser_dataReady", (pdfData) => {
@@ -193,10 +228,18 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
         const borders = getTextBordersCoordinates(pdfData, 0);
         let cells = getTextInCells(pdfData, 0, borders);
         cells = defineCellsColor(pdfData, 0, cells);
-        for (let i = 0; i < cells.length; i++) {
-            if (cells[i].text !== "") {
-                console.log(parseLessonString(cells[i].text));
-            }
+        // for (let i: number = 0; i < cells.length; i++) {
+        //     // if (cells[i].text === "АИС-121") {
+        //     //     const schedule: Array<object> = getGroupSchedule(cells[i], cells)
+        //     //     for (let val of schedule) {
+        //     //         console.log(val)
+        //     //     }
+        //     // }
+        //     console.log(cells[i])
+        // }
+        const coorTimeMap = new LessonTimings(cells);
+        for (let entry of coorTimeMap.coorTimeMap) {
+            console.log(entry);
         }
     });
 });
