@@ -89,7 +89,9 @@ export class PDFParser {
             }
 
             textCellItem.text = textCellItem.text.trim();
-            result.push(textCellItem)
+            if (textCellItem.text !== "") {
+                result.push(textCellItem)
+            }
         }
 
         return result
@@ -121,10 +123,10 @@ export class PDFParser {
         }
 
          return cells
-     }
+    }
 
      // необходимо тщательное тестирование
-    parseLessonString(lessonString: string): object[] {
+    private static parseLessonString(lessonString: string): object[] {
         const timeLimitRegExp: RegExp   = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
         const cabinetRegExp: RegExp     = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
         const lessonTypeRegExp: RegExp  = /\s(лк|лб|пр)\s/;
@@ -210,6 +212,24 @@ export class PDFParser {
 
         return res;
     }
+
+    private static getGroupSchedule(group: TextCell, cells: Array<TextCell>): Array<object> {
+        let result: Array<object> = []
+    
+        for (const cell of cells) {
+            if (Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1 ||
+                Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) > 1 ||
+                Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) > 1 && Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1) 
+            {
+                const lesson: object = {
+                    lesson: PDFParser.parseLessonString(cell.text)
+                }
+                result.push(lesson)
+            }
+        }
+    
+        return result
+    }
 }
 
 export class TextCell {
@@ -221,5 +241,38 @@ export class TextCell {
         this.text = text
         this.isYellow = false
         this.borders = borders
+    }
+}
+
+// coors -> day/time
+class LessonTimings {
+    readonly coorTimeMap: Map<Array<number>, Array<string>>
+
+    constructor(cells: Array<TextCell>) {
+        let coorTimeMap: Map<Array<number>, Array<string>> = new Map<Array<number>, Array<string>>()
+        let currentDay: string = ""
+        const timeOfLessonRegExp: RegExp = /^\d+\:\d+/ 
+        for (const cell of cells) {
+            if (cell.text === "Понедельник" || cell.text === "Вторник" || cell.text === "Среда" || cell.text === "Четверг" || cell.text === "Пятница" || cell.text === "Суббота") {
+                currentDay = cell.text
+            }
+            if (timeOfLessonRegExp.test(cell.text)) {
+                console.log(cell.text)
+                coorTimeMap.set([cell.borders.topLeft.y, cell.borders.rightBottom.y], [currentDay, cell.text]);
+            }
+        } 
+        this.coorTimeMap = coorTimeMap
+    }
+
+    getDayTime(yStart: number, yEnd: number): Array<string>|undefined {
+        for (let key of this.coorTimeMap.keys()) {
+            if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
+                Math.abs(key[0] - yStart) < 1 && key[1] > yEnd ||
+                key[0] > yStart && Math.abs(key[1] - yEnd) < 1) 
+            {
+                return this.coorTimeMap.get(key)
+            }
+        }
+        return [];
     }
 }
