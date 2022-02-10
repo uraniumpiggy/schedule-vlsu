@@ -18,3 +18,5 @@ services:
       - ../../frontend/:/usr/app/
     ports:
       - "3001:3000"
+    links:
+      - api
