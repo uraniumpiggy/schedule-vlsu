@@ -90,7 +90,7 @@ function getTextInCells(pdfData: any, numberOfPage: number, borders: Array<any>)
                 textCellItem.text += currentText + " ";
             }
         }
-        textCellItem.text.slice(0, -1);
+        textCellItem.text = textCellItem.text.trim();
         result.push(textCellItem);
     }
 
@@ -134,7 +134,7 @@ function parseLessonString(lessonString: string): object[] {
     const cabinetRegExp: RegExp     = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
     const lessonTypeRegExp: RegExp  = /\s(лк|лб|пр)\s/;
     const teacherRegExp: RegExp     = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
-    const endOfLessonRegExp: RegExp = /[а-яА-Я]+\.($|\s[А-Я])/;
+    const endOfLessonRegExp: RegExp = /[а-яА-Я]+\.($|(\s[А-Я]))/g;
     let res: object[] = [];
 
     let lessonStringCopy: string = lessonString;
@@ -142,8 +142,8 @@ function parseLessonString(lessonString: string): object[] {
     const lessonStringArray: RegExpMatchArray = lessonStringCopy.match(endOfLessonRegExp) ?? [];
     if (lessonStringArray === []) {
         console.log("Cant define end of string", lessonStringCopy);
-
     }
+
     const lessonCounter: number = lessonStringCopy.match(endOfLessonRegExp)?.length ?? 1;
 
     for (let i: number = 0; i < lessonCounter; i++) {
@@ -165,12 +165,12 @@ function parseLessonString(lessonString: string): object[] {
         let timeStart: number = 0;
         let timeEnd: number   = -1;
         if (timeOfLesson.length !== 0) {
-            const timeStratEndArray: RegExpMatchArray = timeOfLesson[0].match(/\d+/) ?? [];
+            const timeStratEndArray: RegExpMatchArray[] = [...timeOfLesson[0].matchAll(/\d+/g)];
             if (timeStratEndArray.length === 0) {
                 throw "Unexpected error in regex parsing" + currentLessonText;
             }
-            timeStart = parseInt(timeStratEndArray[0]);
-            timeEnd = parseInt(timeStratEndArray[1]);
+            timeStart = parseInt(timeStratEndArray[0][0]);
+            timeEnd = parseInt(timeStratEndArray[1][0]);
         }
 
         const cabinetArray: RegExpMatchArray = currentLessonText.match(cabinetRegExp) ?? [];
@@ -196,7 +196,7 @@ function parseLessonString(lessonString: string): object[] {
         if (teacherArray.length === 0) {
             console.log("Bad teacher parsing", currentLessonText);
         } else {
-            techer = teacherArray[0].substring(1);
+            techer = teacherArray[0].trim();
         }
         currentLessonText = currentLessonText.replace(techer, "");
         currentLessonText = currentLessonText.replace("  ", " ");
@@ -207,7 +207,7 @@ function parseLessonString(lessonString: string): object[] {
             cabinet: cabinet,
             lessonType: lessonType,
             techer: techer,
-            lesson: currentLessonText,
+            lesson: currentLessonText.trim(),
         } 
 
         res.push(currnetRes);

@@ -73,7 +73,7 @@ function getTextInCells(pdfData, numberOfPage, borders) {
                 textCellItem.text += currentText + " ";
             }
         }
-        textCellItem.text.slice(0, -1);
+        textCellItem.text = textCellItem.text.trim();
         result.push(textCellItem);
     }
     return result;
@@ -106,12 +106,12 @@ function defineCellsColor(pdfData, numberOfPage, cells) {
 }
 // необходимо тщательное тестирование
 function parseLessonString(lessonString) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g;
     const timeLimitRegExp = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
     const cabinetRegExp = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
     const lessonTypeRegExp = /\s(лк|лб|пр)\s/;
     const teacherRegExp = /\s[А-Я][а-я]+\s[А-Я]\.\s?[А-Я]\./;
-    const endOfLessonRegExp = /[а-яА-Я]+\.($|\s[А-Я])/;
+    const endOfLessonRegExp = /[а-яА-Я]+\.($|(\s[А-Я]))/g;
     let res = [];
     let lessonStringCopy = lessonString;
     const lessonStringArray = (_a = lessonStringCopy.match(endOfLessonRegExp)) !== null && _a !== void 0 ? _a : [];
@@ -139,14 +139,14 @@ function parseLessonString(lessonString) {
         let timeStart = 0;
         let timeEnd = -1;
         if (timeOfLesson.length !== 0) {
-            const timeStratEndArray = (_e = timeOfLesson[0].match(/\d+/)) !== null && _e !== void 0 ? _e : [];
+            const timeStratEndArray = [...timeOfLesson[0].matchAll(/\d+/g)];
             if (timeStratEndArray.length === 0) {
                 throw "Unexpected error in regex parsing" + currentLessonText;
             }
-            timeStart = parseInt(timeStratEndArray[0]);
-            timeEnd = parseInt(timeStratEndArray[1]);
+            timeStart = parseInt(timeStratEndArray[0][0]);
+            timeEnd = parseInt(timeStratEndArray[1][0]);
         }
-        const cabinetArray = (_f = currentLessonText.match(cabinetRegExp)) !== null && _f !== void 0 ? _f : [];
+        const cabinetArray = (_e = currentLessonText.match(cabinetRegExp)) !== null && _e !== void 0 ? _e : [];
         let cabinet = "";
         if (cabinetArray.length === 0) {
             console.log("Bad cabinet parsing", currentLessonText);
@@ -155,7 +155,7 @@ function parseLessonString(lessonString) {
             cabinet = cabinetArray[0].trim();
         }
         currentLessonText = currentLessonText.replace(cabinetRegExp, "");
-        const lessonTypeArray = (_g = currentLessonText.match(lessonTypeRegExp)) !== null && _g !== void 0 ? _g : [];
+        const lessonTypeArray = (_f = currentLessonText.match(lessonTypeRegExp)) !== null && _f !== void 0 ? _f : [];
         let lessonType = "";
         if (lessonTypeArray.length === 0) {
             console.log("Bad lesson parsing", currentLessonText);
@@ -164,13 +164,13 @@ function parseLessonString(lessonString) {
             lessonType = lessonTypeArray[0].trim();
         }
         currentLessonText = currentLessonText.replace(lessonType, "");
-        const teacherArray = (_h = currentLessonText.match(teacherRegExp)) !== null && _h !== void 0 ? _h : [];
+        const teacherArray = (_g = currentLessonText.match(teacherRegExp)) !== null && _g !== void 0 ? _g : [];
         let techer = "";
         if (teacherArray.length === 0) {
             console.log("Bad teacher parsing", currentLessonText);
         }
         else {
-            techer = teacherArray[0].substring(1);
+            techer = teacherArray[0].trim();
         }
         currentLessonText = currentLessonText.replace(techer, "");
         currentLessonText = currentLessonText.replace("  ", " ");
@@ -180,7 +180,7 @@ function parseLessonString(lessonString) {
             cabinet: cabinet,
             lessonType: lessonType,
             techer: techer,
-            lesson: currentLessonText,
+            lesson: currentLessonText.trim(),
         };
         res.push(currnetRes);
     }
