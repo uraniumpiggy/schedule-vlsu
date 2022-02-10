@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm i && tsc && node index.js"
+    "start": "yarn install && tsc && nodemon --ext ts,json index.js"
   },
   "author": "",
   "license": "ISC",

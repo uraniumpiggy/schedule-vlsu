@@ -37,7 +37,7 @@ const axios_1 = __importDefault(require("axios"));
 const jsdom_1 = require("jsdom");
 const express_1 = __importDefault(require("express"));
 const consts_1 = __importDefault(require("./consts"));
-const app = express_1.default();
+const app = (0, express_1.default)();
 const port = 3000;
 const appRootDir = consts_1.default.appRootDir;
 const pdfRootDir = consts_1.default.pdfRootDir;
@@ -51,7 +51,7 @@ function parseSite(rootDir) {
         dom.window.document.querySelectorAll('a').forEach((link) => {
             if (link.href.includes(".pdf")) {
                 const writer = fs_1.default.createWriteStream(rootDir + '/' + link.text);
-                axios_1.default({
+                (0, axios_1.default)({
                     url: link.href,
                     responseType: 'stream'
                 }).then((response) => {
