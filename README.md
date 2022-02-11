@@ -18,7 +18,7 @@
 
  > ### Запуск проекта
  > 1. В рабочей папке выполните команду git clone https://github.com/uraniumpiggy/schedule-vlsu.git
- > 2. Скрипт ./docker/vlsu/run.sh запускает backend и frontend. Backend будет доступен на порту 3000, в frontend на порту 3001
+ > 2. Скрипт ./docker/vlsu/run.sh запускает backend и frontend. Backend будет доступен на порту 3000, а frontend на порту 3001
 
  ### Структура backend проекта
  - app - endpoints для запросов
