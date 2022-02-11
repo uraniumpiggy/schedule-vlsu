@@ -12,7 +12,7 @@ export class PDFParser {
                 const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
                 const verticalCoors: VerticalSections = new VerticalSections(cells)
                 const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
-                console.log(JSON.stringify(this.getGroupSchedule(groupCells[0], cells, verticalCoors)))
+                // console.log(JSON.stringify(this.getGroupSchedule(groupCells[0], cells, verticalCoors)))
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -333,4 +333,4 @@ class VerticalSections {
 }
 
 
-PDFParser.parse("../1.pdf", () => {}, () => {})
+// PDFParser.parse("../1.pdf", () => {}, () => {})
