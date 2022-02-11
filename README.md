@@ -18,9 +18,9 @@
 
  > ### Запуск проекта
  > 1. В рабочей папке выполните команду git clone https://github.com/uraniumpiggy/schedule-vlsu.git
- > 2. Команда npm start скачивает недостающие пакеты, компилирует файл index.ts в index.js и запускает его
+ > 2. Скрипт ./docker/vlsu/run.sh запускает backend и frontend. Backend будет доступен на порту 3000, в frontend на порту 3001
 
- ### Структура проекта
+ ### Структура backend проекта
  - app - endpoints для запросов
  - institutesTimetables - pdf файлы с расписанием для каждого института
  - lib - пользовательские библиотеки
