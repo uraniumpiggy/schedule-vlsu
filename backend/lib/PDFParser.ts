@@ -11,12 +11,8 @@ export class PDFParser {
                 const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
                 const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
                 const verticalCoors: VerticalSections = new VerticalSections(cells)
-                for (const cell of cells) {
-                    if (cell.text === "МКН-121") {
-                        console.log(JSON.stringify(this.getGroupSchedule(cell, cells, verticalCoors)))
-                    }
-                }
-                console.log(this.getNamesOfGroups(cells, verticalCoors))
+                const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
+                console.log(JSON.stringify(this.getGroupSchedule(groupCells[0], cells, verticalCoors)))
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -171,7 +167,7 @@ export class PDFParser {
             if (timeOfLesson.length !== 0) {
                 const timeStratEndArray: RegExpMatchArray[] = [...timeOfLesson[0].matchAll(/\d+/g)];
                 if (timeStratEndArray.length === 0) {
-                    throw "Unexpected error in regex parsing" + currentLessonText;
+                    throw "Unexpected error in regex parsing " + currentLessonText;
                 }
                 timeStart = parseInt(timeStratEndArray[0][0]);
                 timeEnd = parseInt(timeStratEndArray[1][0]);
@@ -180,7 +176,7 @@ export class PDFParser {
             const cabinetArray: RegExpMatchArray = currentLessonText.match(cabinetRegExp) ?? [];
             let cabinet: string = "";
             if (cabinetArray.length === 0) {
-                console.log("Bad cabinet parsing", currentLessonText);
+                console.log("Bad cabinet parsing ", currentLessonText);
             } else {
                 cabinet = cabinetArray[0].trim();
             }
@@ -189,7 +185,7 @@ export class PDFParser {
             const lessonTypeArray: RegExpMatchArray = currentLessonText.match(lessonTypeRegExp) ?? [];
             let lessonType: string = "";
             if (lessonTypeArray.length === 0) {
-                console.log("Bad lesson parsing", currentLessonText);
+                console.log("Bad lesson parsing ", currentLessonText);
             } else {
                 lessonType = lessonTypeArray[0].trim();
             }
@@ -198,7 +194,7 @@ export class PDFParser {
             const teacherArray: RegExpMatchArray = currentLessonText.match(teacherRegExp) ?? [];
             let techer: string = "";
             if (teacherArray.length === 0) {
-                console.log("Bad teacher parsing", currentLessonText);
+                console.log("Bad teacher parsing ", currentLessonText);
             } else {
                 techer = teacherArray[0].trim();
             }
@@ -315,7 +311,7 @@ class VerticalSections {
         this.coorTimeMap = coorTimeMap
     }
 
-    getDayTime(yStart: number, yEnd: number): Array<string>|undefined {
+    getDayTime(yStart: number, yEnd: number): Array<string> | undefined {
         for (let key of this.coorTimeMap.keys()) {
             if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
                 Math.abs(key[0] - yStart) < 1 && key[1] > yEnd ||
@@ -324,7 +320,7 @@ class VerticalSections {
                 return this.coorTimeMap.get(key)
             }
         }
-        return [];
+        return undefined;
     }
 
     getGroopsCoors(): Array<number> {
