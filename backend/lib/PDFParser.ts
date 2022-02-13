@@ -8,14 +8,32 @@ export class PDFParser {
         parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
         parser.on("pdfParser_dataReady", (pdfData: any) => {
             try {
-                const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
-                const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
-                const verticalCoors: VerticalSections = new VerticalSections(cells)
-                const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
-                const groupsSchedule: object = PDFParser.getGroupSchedule(groupCells[0], cells, verticalCoors)
-                const teacherNames: any = this.getTeachersNames([groupsSchedule])
-                const teacherSchedule: object = this.getTeacherSchedule(teacherNames.teachers[1], [groupsSchedule])
-                callback(cells)
+                // result of parser's work
+                let groupsScheduleMap: Map<string,object> = new Map()
+                let groupsNameObj: any = {groups: []}
+                let teacherScheduleMap: Map<string,object> = new Map()
+                let teacherNamesObj: any = {teachers: []}
+
+                for (let pageIndex: number = 0; pageIndex < pdfData["Pages"].length; pageIndex++) {
+                    const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, pageIndex)
+                    const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, pageIndex, PDFParser.getTextInCells(pdfData, pageIndex, borders))
+                    const verticalCoors: VerticalSections = new VerticalSections(cells)
+                    const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
+                    const namesOfGroups: any = this.getNamesOfGroupsObj(groupCells)
+                    groupsNameObj.groups.push(...namesOfGroups.groups)
+                    for (const groupCell of groupCells) {
+                        const groupsSchedule: any = PDFParser.getGroupSchedule(groupCell, cells, verticalCoors)
+                        groupsScheduleMap.set(groupsSchedule.group, groupsSchedule)
+                    }
+                    const teacherNames: any = this.getTeachersNames(Array.from(groupsScheduleMap.values()))
+                    
+                    teacherNamesObj.teachers.push(...teacherNames.teachers)
+                    for (const teacher of teacherNamesObj.teachers) {
+                        teacherScheduleMap.set(teacher, this.getTeacherSchedule(teacher, Array.from(groupsScheduleMap.values())))
+                    }
+                }
+                // console.log(JSON.stringify(groupsScheduleMap.get("ПМИ-118")))
+                // callback(cells)
             } catch(e: any) {
                 error(e.message)
             }
