@@ -8,11 +8,14 @@ export class PDFParser {
         parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
         parser.on("pdfParser_dataReady", (pdfData: any) => {
             try {
+                let teacherNamesSet: Set<string> = new Set()
                 const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
                 const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
                 const verticalCoors: VerticalSections = new VerticalSections(cells)
                 const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
-                // console.log(JSON.stringify(this.getGroupSchedule(groupCells[0], cells, verticalCoors)))
+                const groupsSchedule: object = PDFParser.getGroupSchedule(groupCells[0], cells, verticalCoors)
+                const teacherNames: string[] = this.getTeachersNames([groupsSchedule])
+                console.log(teacherNames)
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -27,10 +30,6 @@ export class PDFParser {
         parser.loadPDF(path)
     }
 
-    //   {
-    //     topLeft: { x: 74.419, y: 14.175 },
-    //     rightBottom: { x: 91.251, y: 17.719 }
-    //   },
     private static getTextBordersCoordinates(pdfData: any, numberOfPage: number): object[] {
         let result: object[] = []
         const linesData: any = pdfData["Pages"][numberOfPage]["VLines"]
@@ -63,13 +62,6 @@ export class PDFParser {
         return result
     }
 
-
-    //   text: 'c 31.01.2022 по 08.06.2022',
-    //   isYellow: false,
-    //   borders: {
-    //     topLeft: { x: 40.753, y: 17.719 },
-    //     rightBottom: { x: 57.586, y: 19.491 }
-    //   }
     private static getTextInCells(pdfData: any, numberOfPage: number, borders: any[]): TextCell[] {
         const textData:  any = pdfData["Pages"][numberOfPage]["Texts"]
         let result: TextCell[] = []
@@ -128,7 +120,6 @@ export class PDFParser {
          return cells
     }
 
-     // необходимо тщательное тестирование
     private static parseLessonString(lessonString: string): object[] {
         const timeLimitRegExp: RegExp   = /с\s\d+\sнед\.\sпо\s\d+\sнед\./;
         const cabinetRegExp: RegExp     = /\s((\d+[а-я]?)|([А-Я]))-\d+/;
@@ -192,13 +183,13 @@ export class PDFParser {
             currentLessonText = currentLessonText.replace(lessonType, "");
 
             const teacherArray: RegExpMatchArray = currentLessonText.match(teacherRegExp) ?? [];
-            let techer: string = "";
+            let teacher: string = "";
             if (teacherArray.length === 0) {
                 console.log("Bad teacher parsing ", currentLessonText);
             } else {
-                techer = teacherArray[0].trim();
+                teacher = teacherArray[0].trim();
             }
-            currentLessonText = currentLessonText.replace(techer, "");
+            currentLessonText = currentLessonText.replace(teacher, "");
             currentLessonText = currentLessonText.replace("  ", " ");
 
             const currnetRes: object = {
@@ -206,7 +197,7 @@ export class PDFParser {
                 timeEnd: timeEnd,
                 cabinet: cabinet,
                 lessonType: lessonType,
-                techer: techer,
+                teacher: teacher,
                 lesson: currentLessonText.trim(),
             }
 
@@ -224,10 +215,7 @@ export class PDFParser {
         for (const cell of cells) {
             const leftBordersMatchUp: boolean = Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1
             const rightBordersMatchUp: boolean = Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1
-            if (leftBordersMatchUp && rightBordersMatchUp ||
-                leftBordersMatchUp && group.borders.rightBottom.x < cell.borders.rightBottom.x ||
-                group.borders.topLeft.x > cell.borders.topLeft.x && rightBordersMatchUp) 
-            {
+            if (leftBordersMatchUp || rightBordersMatchUp) {
                 const dayTime: Array<string> | undefined = coorTimeMap.getDayTime(cell.borders.topLeft.y, cell.borders.rightBottom.y)
                 let subgroup: string = ""
                 if (leftBordersMatchUp && cell.borders.rightBottom.x < group.borders.rightBottom.x - 2) {
@@ -268,6 +256,22 @@ export class PDFParser {
             }
         }
         return result
+    }
+
+    private static getTeachersNames(lessons: any[]): string[] {
+        console.log(JSON.stringify(lessons))
+        let teacherNamesSet: Set<string> = new Set()
+        for (const group of lessons) {
+            for (const lesson of group.lessons) {
+                for (const lesson_item of lesson.lesson) {
+                    if (lesson_item.teacher !== "") {
+                        teacherNamesSet.add(lesson_item.teacher)
+                    }
+                }
+            }
+        }
+        
+        return Array.from(teacherNamesSet)
     }
 }
 
@@ -315,7 +319,7 @@ class VerticalSections {
         for (let key of this.coorTimeMap.keys()) {
             if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
                 Math.abs(key[0] - yStart) < 1 && key[1] > yEnd ||
-                key[0] > yStart && Math.abs(key[1] - yEnd) < 1) 
+                key[0] < yStart && Math.abs(key[1] - yEnd) < 1) 
             {
                 return this.coorTimeMap.get(key)
             }
@@ -333,4 +337,4 @@ class VerticalSections {
 }
 
 
-// PDFParser.parse("../1.pdf", () => {}, () => {})
+PDFParser.parse("../1.pdf", () => {}, () => {})
