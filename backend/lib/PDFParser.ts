@@ -8,14 +8,13 @@ export class PDFParser {
         parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
         parser.on("pdfParser_dataReady", (pdfData: any) => {
             try {
-                let teacherNamesSet: Set<string> = new Set()
                 const borders: object[] = PDFParser.getTextBordersCoordinates(pdfData, 0)
                 const cells: TextCell[] = PDFParser.defineCellsColor(pdfData, 0, PDFParser.getTextInCells(pdfData, 0, borders))
                 const verticalCoors: VerticalSections = new VerticalSections(cells)
                 const groupCells: TextCell[] = PDFParser.getNamesOfGroups(cells, verticalCoors)
                 const groupsSchedule: object = PDFParser.getGroupSchedule(groupCells[0], cells, verticalCoors)
-                const teacherNames: string[] = this.getTeachersNames([groupsSchedule])
-                console.log(teacherNames)
+                const teacherNames: any = this.getTeachersNames([groupsSchedule])
+                const teacherSchedule: object = this.getTeacherSchedule(teacherNames.teachers[1], [groupsSchedule])
                 callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -198,7 +197,7 @@ export class PDFParser {
                 cabinet: cabinet,
                 lessonType: lessonType,
                 teacher: teacher,
-                lesson: currentLessonText.trim(),
+                lessonName: currentLessonText.trim(),
             }
 
             res.push(currnetRes);
@@ -247,6 +246,40 @@ export class PDFParser {
         }
     }
 
+    private static getTeacherSchedule(teacher: string, groupsSchedule: any[]): object {
+        let resultLessons: object[] = []
+
+        let groupsScheduleCopy: any[] = JSON.parse(JSON.stringify(groupsSchedule))
+
+        for (const group of groupsScheduleCopy) {
+            const nameOfGroup: string = group.group
+
+            for (const lessons of group.lessons) {
+                let currentTeacherLessons: object[] = []
+                
+                for (let lesson of lessons.lesson) {
+                    if (lesson.teacher === teacher) {
+                        Object.defineProperty(lesson, "group", Object.getOwnPropertyDescriptor(lesson, "teacher")??0)
+                        delete lesson["teacher"]
+                        lesson.group = nameOfGroup
+                        currentTeacherLessons.push(lesson)
+                    }
+                }
+
+                if (currentTeacherLessons.length !== 0) {
+                    let copyLessons: any = lessons
+                    copyLessons.lesson = currentTeacherLessons
+                    resultLessons.push(copyLessons)
+                }
+            }
+        }
+
+        return {
+            teacher: teacher,
+            lessons: resultLessons
+        }
+    }
+
     private static getNamesOfGroups(cells: Array<TextCell>, verticalCoors: VerticalSections): Array<TextCell> {
         const coorsOfGroups: Array<number> = verticalCoors.getGroopsCoors()
         let result: Array<TextCell> = []
@@ -258,8 +291,17 @@ export class PDFParser {
         return result
     }
 
-    private static getTeachersNames(lessons: any[]): string[] {
-        console.log(JSON.stringify(lessons))
+    private static getNamesOfGroupsObj(groups: TextCell[]): object {
+        let result: string[] = []
+        for (const item of groups) {
+            result.push(item.text) 
+        }
+        return {
+            groups: result
+        }
+    }
+
+    private static getTeachersNames(lessons: any[]): object {
         let teacherNamesSet: Set<string> = new Set()
         for (const group of lessons) {
             for (const lesson of group.lessons) {
@@ -271,7 +313,9 @@ export class PDFParser {
             }
         }
         
-        return Array.from(teacherNamesSet)
+        return {
+            teachers: Array.from(teacherNamesSet)
+        }
     }
 }
 
@@ -288,7 +332,7 @@ export class TextCell {
 }
 
 // coors -> day/time
-class VerticalSections {
+export class VerticalSections {
     readonly coorTimeMap: Map<Array<number>, Array<string>>
     private groupCoors: Array<number> = [0,0]
     private termCoors: Array<number> = [0,0]
@@ -337,4 +381,4 @@ class VerticalSections {
 }
 
 
-PDFParser.parse("../1.pdf", () => {}, () => {})
+// PDFParser.parse("../1.pdf", () => {}, () => {})
