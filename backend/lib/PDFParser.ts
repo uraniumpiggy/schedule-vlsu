@@ -32,7 +32,7 @@ export class PDFParser {
                         teacherScheduleMap.set(teacher, this.getTeacherSchedule(teacher, Array.from(groupsScheduleMap.values())))
                     }
                 }
-                // console.log(JSON.stringify(groupsScheduleMap.get("ПМИ-118")))
+                console.log(JSON.stringify(teacherScheduleMap.get(teacherNamesObj.teachers[0])))
                 // callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -399,4 +399,4 @@ export class VerticalSections {
 }
 
 
-// PDFParser.parse("../1.pdf", () => {}, () => {})
+PDFParser.parse("../1.pdf", () => {}, () => {})
