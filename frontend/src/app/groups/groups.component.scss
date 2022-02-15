@@ -1,0 +1,14 @@
+.div1 {
+    width: auto;
+    height: 90vh;
+    display: flex;
+    justify-content: space-around;
+    opacity: 0;
+    background:#fff;
+    animation: ani 0.5s forwards;
+
+    @keyframes ani {
+        0% {opacity: 0;}
+        100% {opacity: 1;}
+    }
+}
