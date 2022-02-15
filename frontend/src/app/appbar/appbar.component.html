@@ -1,5 +1,8 @@
-<div class="appbar-container">
+<div class="appbar-container"
+    [class.blue-box] = "!backgroundToggle"
+    [class.white-box] = "backgroundToggle"
+>
     <div class="box">
-        <h1>Button</h1>
+        <button (click)="buttonClick()">ВТ-219</button>
     </div>
 </div>
