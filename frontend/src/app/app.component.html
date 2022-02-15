@@ -1,1 +1,5 @@
-<h1>Hello, world!</h1>
+<div class="main-container">
+    <app-appbar (toggle)="updateContent($event)"></app-appbar>
+    <app-content *ngIf="!handler"></app-content>
+    <app-groups  *ngIf="handler"></app-groups>
+</div>

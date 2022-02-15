@@ -4,11 +4,14 @@
     display: flex;
     align-items: center;
     justify-content: space-around;
-    background-color: #176DEE;
-
-    h1 {
-        color: white;
-    }
+    transition: 0.5s;
 }
 
+.blue-box {
+    background-color: #176DEE;
+}
+
+.white-box {
+    background-color: #7CADF7;
+}
 
