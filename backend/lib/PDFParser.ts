@@ -1,8 +1,9 @@
 import fs from 'fs'
+import { DBController } from './db/controller'
 const pdf2json = require('pdf2json')
 
 export class PDFParser {
-    static parse(path: string, callback: (cells: TextCell[]) => void, error: (err: string) => void) {
+    static async parse(path: string, callback: (cells: TextCell[]) => void, error: (err: string) => void) {
         const parser = new pdf2json()
 
         parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
@@ -32,7 +33,6 @@ export class PDFParser {
                         teacherScheduleMap.set(teacher, this.getTeacherSchedule(teacher, Array.from(groupsScheduleMap.values())))
                     }
                 }
-                console.log(JSON.stringify(teacherScheduleMap.get(teacherNamesObj.teachers[0])))
                 // callback(cells)
             } catch(e: any) {
                 error(e.message)
@@ -399,4 +399,4 @@ export class VerticalSections {
 }
 
 
-PDFParser.parse("../1.pdf", () => {}, () => {})
+// PDFParser.parse("../1.pdf", () => {}, () => {})
