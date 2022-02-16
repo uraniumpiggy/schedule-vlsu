@@ -25,13 +25,14 @@
  Доступ к базе данных можно получить из браузера по адресу http://localhost:8081. При первом запуске бд там cтоит создать новую базу данных schedule-vlsu.
  
  #### Миграции
- Для работы с миграциями использутеся библиотека mongodb-migrations (https://github.com/emirotin/mongodb-migrations). Для упращения работы с миграциями можно использовать скрипт `docker/vlsu/mm.sh`. Пример:
+ Для работы с миграциями использутеся библиотека mongodb-migrations (https://github.com/emirotin/mongodb-migrations). Для упращения работы с миграциями можно использовать скрипт `docker/vlsu/mm.sh`. 
+ Пример:
  ```sh
- docker/vlsu/mm.sh create init
+docker/vlsu/mm.sh create init
  ```
  Этот скрипт создаст новую миграцию в папке /backend/migrations.
 ```sh
- docker/vlsu/mm.sh
+docker/vlsu/mm.sh
  ```
  Этот скрипт применит миграции.
 
