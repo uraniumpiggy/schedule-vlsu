@@ -1,0 +1,9 @@
+{
+    "host": "mongo",
+    "port": "27017",
+    "db": "schedule-vlsu",
+    "user": "root",
+    "password": "example",
+    "authDatabase": "admin",
+    "directory": "./migrations"
+}
