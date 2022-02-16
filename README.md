@@ -18,7 +18,22 @@
 
  > ### Запуск проекта
  > 1. В рабочей папке выполните команду git clone https://github.com/uraniumpiggy/schedule-vlsu.git
- > 2. Скрипт ./docker/vlsu/run.sh запускает backend и frontend. Backend будет доступен на порту 3000, а frontend на порту 3001
+ > 2. Скрипт ./docker/vlsu/run.sh запускает backend, frontend, mongodb и mongo-express. Backend будет доступен на порту 3000, а frontend на порту 3001
+
+ ### Работа с БД
+ Была использована mongodb, все данные о базе данных храняться локально в папке /docker/vlsu/db/datadir. Если надо сбросить бд, можно просто удалить эту папку и перезапустить проект.
+ Доступ к базе данных можно получить из браузера по адресу http://localhost:8081. При первом запуске бд там cтоит создать новую базу данных schedule-vlsu.
+ 
+ #### Миграции
+ Для работы с миграциями использутеся библиотека mongodb-migrations (https://github.com/emirotin/mongodb-migrations). Для упращения работы с миграциями можно использовать скрипт `docker/vlsu/mm.sh`. Пример:
+ ```sh
+ docker/vlsu/mm.sh create init
+ ```
+ Этот скрипт создаст новую миграцию в папке /backend/migrations.
+```sh
+ docker/vlsu/mm.sh
+ ```
+ Этот скрипт применит миграции.
 
  ### Структура backend проекта
  - app - endpoints для запросов
