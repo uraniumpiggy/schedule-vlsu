@@ -1,2 +1,3 @@
 *.js
 institutesTimetables
+!/lib/db/schemes/*.js

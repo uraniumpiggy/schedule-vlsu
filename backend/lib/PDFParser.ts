@@ -1,14 +1,14 @@
 import fs from 'fs'
+import { DBController } from './db/controller'
 const pdf2json = require('pdf2json')
 
 export class PDFParser {
-    static parse(path: string, callback: (cells: TextCell[]) => void, error: (err: string) => void) {
+    static async parse(path: string, callback: (data: any) => void, error: (err: string) => void) {
         const parser = new pdf2json()
 
         parser.on("pdfParser_dataError", (errData: any) => error(errData.parserError))
         parser.on("pdfParser_dataReady", (pdfData: any) => {
             try {
-                // result of parser's work
                 let groupsScheduleMap: Map<string,object> = new Map()
                 let groupsNameObj: any = {groups: []}
                 let teacherScheduleMap: Map<string,object> = new Map()
@@ -32,8 +32,12 @@ export class PDFParser {
                         teacherScheduleMap.set(teacher, this.getTeacherSchedule(teacher, Array.from(groupsScheduleMap.values())))
                     }
                 }
-                // console.log(JSON.stringify(groupsScheduleMap.get("ПМИ-118")))
-                // callback(cells)
+                callback({
+                    groupsSchedule: Array.from(groupsScheduleMap.values()),
+                    groupsNames: groupsNameObj,
+                    teachersSchedule: Array.from(teacherScheduleMap.values()),
+                    teachersNames: teacherNamesObj,
+                })
             } catch(e: any) {
                 error(e.message)
             }
