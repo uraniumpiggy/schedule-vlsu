@@ -3,12 +3,13 @@ const GroupNames = require("./schemes/GroupNames")
 const GroupSchedule = require("./schemes/GroupSchedule")
 const TeacherSchedule = require("./schemes/TeacherSchedule")
 const mongoose = require("mongoose")
+import consts from '../../consts'
 
 
 export class DBController {
     private readonly URL: string
 
-    constructor(URL: string) {
+    constructor(URL: string = consts.dbURL) {
         this.URL = URL
 
         mongoose.connect(
