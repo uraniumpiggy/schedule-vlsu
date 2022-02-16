@@ -51,15 +51,15 @@ export class DBController {
         console.log('Teachers schedule saved')
     }
 
-    public async addToGroupNames(names: string[]) {
+    public async addToGroupNames(names: any) {
         const groupNames = await GroupNames.find({})
-        groupNames[0].groups.push(...names)
+        groupNames[0].groups.push(...names.groups)
         await groupNames.save()
     }
 
-    public async addToTeacherNames(names: string[]) {
+    public async addToTeacherNames(names: any) {
         const teacherNames = await TeacherNames.find({})
-        teacherNames[0].teachers.push(...names)
+        teacherNames[0].teachers.push(...names.teachers)
         await teacherNames.save()
     }
 

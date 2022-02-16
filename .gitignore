@@ -1,7 +1,0 @@
-node_modules
-*.pdf
-*.json
-!package-lock.json
-!package.json
-!tsconfig.json
-LICENSE
