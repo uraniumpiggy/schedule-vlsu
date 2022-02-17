@@ -2,7 +2,6 @@ version: "3.7"
 services:
   api:
     build: api
-    command: yarn start
     working_dir: /usr/app/
     hostname: vlsu-backend
     volumes:
@@ -13,7 +12,6 @@ services:
       - mongo
   front:
     build: front
-    command: yarn start
     working_dir: /usr/app/
     hostname: vlsu-frontend
     volumes:

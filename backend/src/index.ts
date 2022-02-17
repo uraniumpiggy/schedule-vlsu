@@ -4,6 +4,7 @@ import axios from 'axios'
 import { JSDOM } from 'jsdom'
 import express from 'express'
 import consts from './consts'
+import { updateDatabase } from './lib/db/syncTask'
 
 const app = express()
 const port = 3000
@@ -40,6 +41,7 @@ function parseSite(rootDir: string) {
 }
 
 parseSite(pdfRootDir)
+// setImmediate(updateDatabase) // асинхронно парсит все pdf файлы в бд
 
 fs.readdirSync(appRootDir).map(async (fileName: string) => {
     const components = fileName.split('.')

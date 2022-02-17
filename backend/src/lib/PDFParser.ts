@@ -26,7 +26,7 @@ export class PDFParser {
                         groupsScheduleMap.set(groupsSchedule.group, groupsSchedule)
                     }
                     const teacherNames: any = this.getTeachersNames(Array.from(groupsScheduleMap.values()))
-                    
+
                     teacherNamesObj.teachers.push(...teacherNames.teachers)
                     for (const teacher of teacherNamesObj.teachers) {
                         teacherScheduleMap.set(teacher, this.getTeacherSchedule(teacher, Array.from(groupsScheduleMap.values())))
@@ -212,17 +212,17 @@ export class PDFParser {
             }
             currentLessonText = currentLessonText.replace(teacher, "");
             currentLessonText = currentLessonText.replace("  ", " ");
+            const cabinetComponents = cabinet.split('-')
 
-            const currnetRes: object = {
+            res.push({
                 timeStart: timeStart,
                 timeEnd: timeEnd,
-                cabinet: cabinet,
+                audienceNumber: cabinetComponents[0],
+                universityBuilding: cabinetComponents.length > 1 ? cabinetComponents[1] : 0,
                 lessonType: lessonType,
                 teacher: teacher,
                 lessonName: currentLessonText.trim(),
-            }
-
-            res.push(currnetRes);
+            });
         }
 
         return res;
@@ -231,8 +231,8 @@ export class PDFParser {
     private static getGroupSchedule(group: TextCell, cells: Array<TextCell>, coorTimeMap: VerticalSections): object {
         let lessons: Array<object> = []
         let term: string = ""
-        const termCoors: Array<number> = coorTimeMap.getTermCoors() 
-    
+        const termCoors: Array<number> = coorTimeMap.getTermCoors()
+
         for (const cell of cells) {
             const leftBordersMatchUp: boolean = Math.abs(group.borders.topLeft.x - cell.borders.topLeft.x) < 1
             const rightBordersMatchUp: boolean = Math.abs(group.borders.rightBottom.x - cell.borders.rightBottom.x) < 1
@@ -260,7 +260,7 @@ export class PDFParser {
                 }
             }
         }
-    
+
         return {
             group: group.text,
             term: term,
@@ -278,7 +278,7 @@ export class PDFParser {
 
             for (const lessons of group.lessons) {
                 let currentTeacherLessons: object[] = []
-                
+
                 for (let lesson of lessons.lesson) {
                     if (lesson.teacher === teacher) {
                         Object.defineProperty(lesson, "group", Object.getOwnPropertyDescriptor(lesson, "teacher")??0)
@@ -316,7 +316,7 @@ export class PDFParser {
     private static getNamesOfGroupsObj(groups: TextCell[]): object {
         let result: string[] = []
         for (const item of groups) {
-            result.push(item.text) 
+            result.push(item.text)
         }
         return {
             groups: result
@@ -334,7 +334,7 @@ export class PDFParser {
                 }
             }
         }
-        
+
         return {
             teachers: Array.from(teacherNamesSet)
         }
@@ -362,13 +362,12 @@ export class VerticalSections {
     constructor(cells: Array<TextCell>) {
         let coorTimeMap: Map<Array<number>, Array<string>> = new Map<Array<number>, Array<string>>()
         let currentDay: string = ""
-        const timeOfLessonRegExp: RegExp = /^\d+\:\d+/ 
+        const timeOfLessonRegExp: RegExp = /^\d+\:\d+/
         for (const cell of cells) {
             if (cell.text === "Понедельник" || cell.text === "Вторник" || cell.text === "Среда" || cell.text === "Четверг" || cell.text === "Пятница" || cell.text === "Суббота") {
                 currentDay = cell.text
             }
             if (timeOfLessonRegExp.test(cell.text)) {
-                console.log(cell.text)
                 coorTimeMap.set([cell.borders.topLeft.y, cell.borders.rightBottom.y], [currentDay, cell.text]);
             }
             if (cell.text === "Группа") {
@@ -377,7 +376,7 @@ export class VerticalSections {
             if (cell.text === "Срок") {
                 this.termCoors = [cell.borders.topLeft.y, cell.borders.rightBottom.y]
             }
-        } 
+        }
         this.coorTimeMap = coorTimeMap
     }
 
@@ -385,7 +384,7 @@ export class VerticalSections {
         for (let key of this.coorTimeMap.keys()) {
             if (Math.abs(key[0] - yStart) < 1 && Math.abs(key[1] - yEnd) < 1 ||
                 Math.abs(key[0] - yStart) < 1 && key[1] > yEnd ||
-                key[0] < yStart && Math.abs(key[1] - yEnd) < 1) 
+                key[0] < yStart && Math.abs(key[1] - yEnd) < 1)
             {
                 return this.coorTimeMap.get(key)
             }

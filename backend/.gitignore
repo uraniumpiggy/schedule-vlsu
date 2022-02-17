@@ -1,3 +1,2 @@
-*.js
+bin
 institutesTimetables
-!/lib/db/schemes/*.js

@@ -2,10 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "backend for schedule-vlsu application",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "yarn install && tsc && nodemon --ext ts,json index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
