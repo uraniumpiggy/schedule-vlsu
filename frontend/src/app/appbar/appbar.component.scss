@@ -1,10 +1,11 @@
 .appbar-container {
     width: auto;
-    height: 10vh;
+    height: 8vh;
     display: flex;
     align-items: center;
     justify-content: space-around;
     transition: 0.5s;
+    border-bottom: solid rgba($color: #7CADF7, $alpha: 0.5) 1px;
 }
 
 .blue-box {
@@ -12,6 +13,6 @@
 }
 
 .white-box {
-    background-color: #7CADF7;
+    background-color: #fff;
 }
 

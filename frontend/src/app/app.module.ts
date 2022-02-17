@@ -5,6 +5,7 @@ import { ContentModule } from './content/content.module';
 import { GroupsModule } from './groups/groups.module';
 
 import { AppComponent } from './app.component';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 
 
@@ -16,7 +17,8 @@ import { AppComponent } from './app.component';
     BrowserModule,
     AppbarModule,
     ContentModule,
-    GroupsModule
+    GroupsModule,
+    NoopAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

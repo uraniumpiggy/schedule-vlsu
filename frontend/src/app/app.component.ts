@@ -1,17 +1,17 @@
 import { Component } from '@angular/core';
 
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
+
 export class AppComponent {
   title = 'Schedule';
 
-  handler: boolean = false;
+  toggle: boolean = false;
 
-  updateContent(backgroundToggle: boolean) {
-      this.handler = backgroundToggle;
+  updateContent(togglePage: boolean) {
+      this.toggle = togglePage;
   }
 }
