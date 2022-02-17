@@ -1,8 +1,10 @@
 <div class="appbar-container"
-    [class.blue-box] = "!backgroundToggle"
-    [class.white-box] = "backgroundToggle"
+    [class.blue-box] = "!handler"
+    [class.white-box] = "handler"
 >
     <div class="box">
-        <button (click)="buttonClick()">ВТ-219</button>
+        <app-button (toggle)="updateAppbarColor($event)"></app-button>
     </div>
 </div>
+
+

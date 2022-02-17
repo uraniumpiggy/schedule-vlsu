@@ -1,13 +1,18 @@
 import { NgModule } from '@angular/core';
+import { ButtonModule } from './button/button.module';
 
 import { AppbarComponent } from './appbar.component';
 
+
 @NgModule({
     declarations: [
-        AppbarComponent
+        AppbarComponent,
+    ],
+    imports: [
+        ButtonModule
     ],
     exports: [
-        AppbarComponent
+        AppbarComponent,
     ]
 })
 
