@@ -7,8 +7,7 @@
 * MongoDB
 
 ### Frontend web:
-* React.js
-* Redux
+* Angular
 
  ### Список задач:
  - [x] Определить границы ячейки, ее цвет и текст
