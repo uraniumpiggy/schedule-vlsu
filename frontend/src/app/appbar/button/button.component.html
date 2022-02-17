@@ -1,3 +1,7 @@
-<button (click)="buttonClick()">
-    <h1>ВТ-219<mat-icon aria-hidden="false" aria-label="Example home icon">keyboard_arrow_down</mat-icon></h1>
+<button mat-button (click)="buttonClick()">
+    Группа
+    <mat-icon *ngIf="!toggleAppbarColor; else arrowUp">keyboard_arrow_down</mat-icon>
+    <ng-template #arrowUp>
+        <mat-icon>keyboard_arrow_up</mat-icon>
+    </ng-template>
 </button>
