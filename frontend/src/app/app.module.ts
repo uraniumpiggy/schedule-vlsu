@@ -1,24 +1,22 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { AppbarModule } from './appbar/appbar.module';
+import { ContentModule } from './content/content.module';
+import { GroupsModule } from './groups/groups.module';
 
 import { AppComponent } from './app.component';
-import { AppbarComponent } from './appbar/appbar.component';
-import { ContentComponent } from './content/content.component';
-import { GroupsComponent } from './groups/groups.component';
-import { CalendarComponent } from './calendar/calendar.component';
 
 
 
 @NgModule({
   declarations: [
-    AppComponent,
-    AppbarComponent,
-    ContentComponent,
-    GroupsComponent,
-    CalendarComponent
-],
+    AppComponent
+  ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    AppbarModule,
+    ContentModule,
+    GroupsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
