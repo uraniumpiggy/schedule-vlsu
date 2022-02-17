@@ -8,6 +8,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 export class ButtonComponent {
 
+    title = "Группа"
     toggleAppbarColor = false;
     @Output() toggle: EventEmitter<boolean> = new EventEmitter<boolean>();
 
