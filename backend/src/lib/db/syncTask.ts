@@ -5,22 +5,30 @@ import consts from '../../consts'
 import { PDFParser } from '../PDFParser'
 import { DBController } from './controller'
 
-export function updateDatabase() {
+export async function updateDatabase() {
     const controller = new DBController(consts.dbURL, 'root', 'example', 'admin')
+    const teachersNames: any = []
+    const groupsNames: any = []
+    const groupsSchedule: any = []
 
     fs.readdirSync(consts.pdfRootDir).map((fileName: string) => {
         PDFParser.parse(
             path.join(consts.pdfRootDir, fileName),
             (cells: any) => {
-                insertAudience(cells.groupsSchedule, controller)
-                insertGroup(cells.groupsNames, controller)
+                teachersNames.push(...cells.teachersNames.teachers)
+                groupsNames.push(...cells.groupsNames.groups)
+                groupsSchedule.push(...cells.groupsSchedule)
             },
             (err: string) => console.log(err)
         )
     })
+
+    await updateAudiences(groupsSchedule, controller)
+    await updateGroups(groupsNames, controller)
+    await updateTeachers(teachersNames, controller)
 }
 
-export async function insertAudience(data: any, controller: DBController) {
+export async function updateAudiences(data: any, controller: DBController) {
     for(let i = 0; i < data.length; i++) {
         for(let j = 0; j < data[i].lessons.length; j++) {
             for(let z = 0; z < data[i].lessons[j].lesson.length; z++) {
@@ -35,12 +43,30 @@ export async function insertAudience(data: any, controller: DBController) {
     }
 }
 
-export async function insertGroup(data: any, controller: DBController) {
-    for(let i = 0; i < data.groups.length; i++) {
-        const itemData = {name: data.groups[i]}
-        const item = await controller.GroupModel.findOne(itemData)
-
+export async function updateGroups(data: any, controller: DBController) {
+    for(let i = 0; i < data.length; i++) {
+        const item = await controller.GroupModel.findOne({name: data[i]})
         if(!item)
-            await controller.GroupModel.create(itemData)
+            await controller.GroupModel.create({name: data[i]})
     }
+
+    const items = await controller.GroupModel.find()
+    items.forEach((item: any) => {
+        if(!data.includes(item.name))
+            item.remove()
+    })
+}
+
+export async function updateTeachers(data: any, controller: DBController) {
+    for(let i = 0; i < data.length; i++) {
+        const item = await controller.TeachersModel.findOne({fullName: data[i]})
+        if(!item)
+            await controller.TeachersModel.create({fullName: data[i]})
+    }
+
+    const items = await controller.TeachersModel.find()
+    items.forEach((item: any) => {
+        if(!data.includes(item.fullName))
+            item.remove()
+    })
 }

@@ -40,8 +40,8 @@ function parseSite(rootDir: string) {
     }).catch((err: any) => console.error(err))
 }
 
-parseSite(pdfRootDir)
-// setImmediate(updateDatabase) // асинхронно парсит все pdf файлы в бд
+// parseSite(pdfRootDir)
+setImmediate(updateDatabase) // асинхронно парсит все pdf файлы в бд
 
 fs.readdirSync(appRootDir).map(async (fileName: string) => {
     const components = fileName.split('.')
