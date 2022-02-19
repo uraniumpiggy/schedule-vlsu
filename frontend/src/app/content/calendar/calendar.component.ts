@@ -3,14 +3,8 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
-  styles: [
-  ]
+  styleUrls: ['./calendar.component.scss']
 })
-export class CalendarComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+export class CalendarComponent {
 
 }
