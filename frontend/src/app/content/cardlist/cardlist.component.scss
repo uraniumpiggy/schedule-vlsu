@@ -1,0 +1,11 @@
+@media screen and (max-width: 900px) {
+
+    .cardlist-container {
+        width: 100%;
+        height: 60vh;
+
+        overflow: auto;
+        overflow-x:hidden;
+        background-color: rgb(243, 243, 243);
+    }
+}
