@@ -1,8 +1,7 @@
 <div class="main-container">
     <app-appbar (togglePage)="updateContent($event)"></app-appbar>
 
-    <app-content *ngIf="!toggle; else appGroups"></app-content>
-
+    <app-content *ngIf="!visibly; else appGroups"></app-content>
     <ng-template #appGroups>
         <app-groups></app-groups>
     </ng-template>
