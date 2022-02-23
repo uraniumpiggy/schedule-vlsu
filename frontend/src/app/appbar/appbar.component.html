@@ -1,9 +1,6 @@
-<div class="appbar-container"
-    [class.blue-box] = "!handler"
-    [class.white-box] = "handler"
->
+<div class="appbar-container" [@appbar-container] = "appbarState">
     <div class="box">
-        <app-button (toggle)="updateAppbarColor($event)"></app-button>
+        <app-button (toggle)="animate()"></app-button>
     </div>
 </div>
 

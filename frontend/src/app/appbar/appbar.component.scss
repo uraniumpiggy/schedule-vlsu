@@ -1,18 +1,19 @@
+/* Import variables */
+
+@import "./src/styles.scss";
+
+
+/* Description styles */
+
 .appbar-container {
     width: auto;
     height: 8vh;
+
     display: flex;
     align-items: center;
     justify-content: space-around;
-    transition: 0.5s;
-    border-bottom: solid rgba($color: #7CADF7, $alpha: 0.5) 1px;
-}
 
-.blue-box {
-    background-color: #176DEE;
-}
+    border-bottom: solid rgba($color: $appbar-line, $alpha: 0.5) 1px;
 
-.white-box {
-    background-color: #fff;
 }
 

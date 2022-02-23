@@ -9,7 +9,7 @@ import { AppbarComponent } from './appbar.component';
         AppbarComponent,
     ],
     imports: [
-        ButtonModule
+        ButtonModule,
     ],
     exports: [
         AppbarComponent,
